@@ -193,35 +193,51 @@ export function OrgChartScreen({ roles, canEdit, previewData }: { roles: Role[];
 
     {draft && <Modal title={draft.isNew ? 'Add a seat' : draft.title} close={() => setDraft(null)}>
       <form onSubmit={e => { e.preventDefault(); void save(); }}>
-        <div className="form-stack">
-          <label>Position title<input required value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} /></label>
-          <div className="form-two">
-            <label>Group<input value={draft.group_name} placeholder="e.g. CC – Delhi" onChange={e => setDraft({ ...draft, group_name: e.target.value })} /></label>
-            <label>Planned name (label only)<input value={draft.planned_name} onChange={e => setDraft({ ...draft, planned_name: e.target.value })} /></label>
-          </div>
-          {draft.kind === 'internal' && <label>Held by
-            <select value={draft.holder} onChange={e => setDraft({ ...draft, holder: e.target.value })}>
-              <option value="">Vacant</option>
-              {approvedUsers.map(u => <option key={u.id} value={u.id}>{u.full_name || u.email}</option>)}
-            </select></label>}
-          <div className="form-two">
-            <label>Reports to (approves their work)
-              <select value={draft.parent_id} onChange={e => setDraft({ ...draft, parent_id: e.target.value })}>
-                <option value="">— top of the chart —</option>
-                {positions.filter(p => p.id !== draft.id && p.kind === 'internal').map(p => <option key={p.id} value={p.id}>{p.title}{p.planned_name ? ` (${p.planned_name})` : ''}</option>)}
+        <div className="form-stack pretty-form">
+          <section className="form-section">
+            <h3><span className="fs-ico"><Briefcase size={15} /></span>The seat<small>What this position is called</small></h3>
+            <label className="field">Position title<input required autoFocus placeholder="e.g. HOD – Sales" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} /></label>
+            <div className="form-two">
+              <label className="field">Group<input value={draft.group_name} placeholder="e.g. CC – Delhi" onChange={e => setDraft({ ...draft, group_name: e.target.value })} /><small>Shown as a heading above the seat</small></label>
+              <label className="field">Planned name<input value={draft.planned_name} placeholder="Who is expected here" onChange={e => setDraft({ ...draft, planned_name: e.target.value })} /><small>A label only, until someone joins</small></label>
+            </div>
+          </section>
+
+          {draft.kind === 'internal' && <section className="form-section">
+            <h3><span className="fs-ico"><UserCheck size={15} /></span>Who sits here<small>The signed-up person in this seat</small></h3>
+            <label className="field">Held by
+              <select value={draft.holder} onChange={e => setDraft({ ...draft, holder: e.target.value })}>
+                <option value="">Vacant</option>
+                {approvedUsers.map(u => <option key={u.id} value={u.id}>{u.full_name || u.email}</option>)}
               </select></label>
-            <label>Guided by (display only)
-              <select value={draft.guided_by_id} onChange={e => setDraft({ ...draft, guided_by_id: e.target.value })}>
-                <option value="">—</option>
-                {positions.filter(p => p.id !== draft.id && p.kind === 'internal').map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+          </section>}
+
+          <section className="form-section">
+            <h3><span className="fs-ico"><Users size={15} /></span>Reporting line<small>Decides who approves their work</small></h3>
+            <div className="form-two">
+              <label className="field">Reports to
+                <select value={draft.parent_id} onChange={e => setDraft({ ...draft, parent_id: e.target.value })}>
+                  <option value="">— top of the chart —</option>
+                  {positions.filter(p => p.id !== draft.id && p.kind === 'internal').map(p => <option key={p.id} value={p.id}>{p.title}{p.planned_name ? ` (${p.planned_name})` : ''}</option>)}
+                </select><small>Approves their work</small></label>
+              <label className="field">Guided by
+                <select value={draft.guided_by_id} onChange={e => setDraft({ ...draft, guided_by_id: e.target.value })}>
+                  <option value="">None</option>
+                  {positions.filter(p => p.id !== draft.id && p.kind === 'internal').map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                </select><small>Shown on the chart only</small></label>
+            </div>
+          </section>
+
+          <section className="form-section">
+            <h3><span className="fs-ico"><ShieldCheck size={15} /></span>Review sheet<small>Used when this person is approved</small></h3>
+            <label className="field">Default role template
+              <select value={draft.role_slug} onChange={e => setDraft({ ...draft, role_slug: e.target.value })}>
+                <option value="">None</option>
+                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select></label>
-          </div>
-          <label>Default role template
-            <select value={draft.role_slug} onChange={e => setDraft({ ...draft, role_slug: e.target.value })}>
-              <option value="">None</option>
-              {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-            </select></label>
-          <p className="form-note">Changing who holds a seat or where it reports re-routes approvals immediately, and everyone sees it on this chart within a minute. Old holders stay in the history.</p>
+          </section>
+
+          <p className="form-note info"><Clock3 size={16} /><span>Changes to the holder or reporting line re-route approvals straight away. Everyone sees them on this chart within a minute, and old holders stay in the history.</span></p>
           {error && <p className="form-error" role="alert">{error}</p>}
         </div>
         <div className="modal-footer">
