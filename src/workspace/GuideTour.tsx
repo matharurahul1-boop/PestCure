@@ -27,7 +27,8 @@ function Block({ block, lit }: { block: GuideBlock; lit: number }) {
 const readLang = (): NarrationLang => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'hi'; } catch { return 'hi'; } };
 
 /** Full-screen, swipeable walkthrough cards with an optional voice-over (Hindi / English) that plays the cards like a short video. */
-export function GuideTour({ cards, onDone, finishLabel = 'Start' }: { cards: GuideCard[]; onDone: () => void; finishLabel?: string }) {
+export function GuideTour({ cards, onDone, finishLabel = 'Start', allowSkipForever = false }: { cards: GuideCard[]; onDone: (forever: boolean) => void; finishLabel?: string; allowSkipForever?: boolean }) {
+  const [forever, setForever] = useState(false);
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<'next' | 'back'>('next');
   const [playing, setPlaying] = useState(false);
@@ -36,7 +37,7 @@ export function GuideTour({ cards, onDone, finishLabel = 'Start' }: { cards: Gui
   const narrator = useNarrator();
   const last = index === cards.length - 1;
   const go = (to: number) => { if (to < 0 || to >= cards.length || to === index) return; setDir(to > index ? 'next' : 'back'); setIndex(to); };
-  const finish = () => { narrator.stop(); onDone(); };
+  const finish = () => { narrator.stop(); onDone(forever); };
   const chooseLang = (l: NarrationLang) => { setLang(l); try { localStorage.setItem(LANG_KEY, l); } catch { /* ignore */ } };
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function GuideTour({ cards, onDone, finishLabel = 'Start' }: { cards: Gui
   const noHindi = lang === 'hi' && narrator.ready && !narrator.hasHindi;
 
   return createPortal(
-    <div className="guide" role="dialog" aria-modal="true" aria-label="Getting started guide">
+    <div className="guide-overlay" role="dialog" aria-modal="true" aria-label="Getting started guide">
       <div className="guide-top">
         <div className="g-dots" role="tablist" aria-label="Guide progress">{cards.map((c, i) => <button key={c.id} role="tab" aria-selected={i === index} aria-label={`Card ${i + 1}`} className={i === index ? 'on' : i < index ? 'done' : ''} onClick={() => go(i)} />)}</div>
         <button className="g-skip" onClick={finish}>Skip <X size={15} /></button>
@@ -97,6 +98,7 @@ export function GuideTour({ cards, onDone, finishLabel = 'Start' }: { cards: Gui
         </div>
       </div>}
 
+      {allowSkipForever && <label className="g-never"><input type="checkbox" checked={forever} onChange={e => setForever(e.target.checked)} /><span>Don’t show this when I sign in</span></label>}
       <footer className="guide-actions">
         <button className="g-btn ghost" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous card"><ArrowLeft size={18} /><span>Back</span></button>
         <span className="g-count">{index + 1} / {cards.length}</span>

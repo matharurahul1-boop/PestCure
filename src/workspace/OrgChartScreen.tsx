@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useConfirm } from './ConfirmDialog';
-import { ChevronDown, Plus, RefreshCw, Search, Trash2, UserCheck, Users } from 'lucide-react';
+import { Briefcase, ChevronDown, ChevronRight, Clock3, Compass, CornerDownRight, Plus, RefreshCw, Search, ShieldCheck, Trash2, UserCheck, Users } from 'lucide-react';
 import { Modal } from './Modal';
 import { Avatar } from './Avatar';
 import type { Role } from './model';
@@ -95,25 +95,46 @@ export function OrgChartScreen({ roles, canEdit, previewData }: { roles: Role[];
     try { await deletePosition(draft.id); setDraft(null); load(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
+  /** Each branch under the founder gets its own colour, so a seat can be placed at a glance. */
+  const toneOf = (x: OrgPosition) => {
+    let cur: OrgPosition | undefined = x;
+    for (let i = 0; cur && i < 12; i++) { const parent: OrgPosition | undefined = cur.parent_id ? byId.get(cur.parent_id) : undefined; if (!parent || !parent.parent_id) break; cur = parent; }
+    const heads = roots.flatMap(r => kids(r.id));
+    const idx = cur ? heads.findIndex(h => h.id === cur!.id) : -1;
+    return idx < 0 ? 0 : idx % 6;
+  };
   const Seat = ({ p, root = false }: { p: OrgPosition; root?: boolean }) => {
     const h = holderOf(p.id);
     const isMe = me?.position_id === p.id;
     const isAcc = !!myAcc && h?.user_id === myAcc;
     const isTeam = reportsToMe.has(p.id);
-    const cls = `org-seat${isMe ? ' is-me' : ''}${isAcc ? ' is-acc' : ''}${isTeam ? ' is-team' : ''}${root ? ' root' : ''}${canEdit ? ' editable' : ''}`;
+    const cls = `org-seat tone-${toneOf(p)}${isMe ? ' is-me' : ''}${isAcc ? ' is-acc' : ''}${isTeam ? ' is-team' : ''}${root ? ' root' : ''}${canEdit ? ' editable' : ''}`;
+    // the accountable is only worth a chip when it is NOT simply the person in the seat above
+    const accName = p.parent_id ? accountableName(p.id) : '';
+    const showAcc = !!p.parent_id && !!accountableUser(p.id) && accName !== holderOf(p.parent_id)?.name;   // admin is the default, no chip needed
+    const guide = p.guided_by_id ? byId.get(p.guided_by_id)?.title : undefined;
+    const soon = !h && p.planned_name;
     const body = <>
-      <span className="org-seat-head">{h ? <Avatar name={h.name} small /> : <span className="org-seat-ghost" />}
-        <span className="org-seat-title">{p.title}</span>
-        {(isMe || isAcc || isTeam) && <em className="org-tag">{isMe ? 'You' : isAcc ? 'Your accountable' : 'Reports to you'}</em>}</span>
-      <strong>{h ? h.name : <span className="org-vacant">{p.planned_name || 'Vacant'}{p.planned_name ? ' · not joined yet' : ''}</span>}</strong>
-      {p.parent_id && <small>Accountable: {accountableName(p.id)}{p.guided_by_id ? ` · guided by ${byId.get(p.guided_by_id)?.title ?? ''}` : ''}</small>}
+      <span className="org-seat-row">
+        {h ? <Avatar name={h.name} small /> : <span className="org-seat-ghost" />}
+        <span className="org-seat-who">
+          <strong>{h ? h.name : <span className="org-vacant">Vacant</span>}</strong>
+          <em className="org-role-pill">{p.title}</em>
+        </span>
+        {(isMe || isAcc || isTeam) && <em className="org-tag">{isMe ? 'You' : isAcc ? 'Approver' : 'Your team'}</em>}
+      </span>
+      {(soon || showAcc || guide) && <span className="org-chips">
+        {soon && <span className="org-chip c-soon"><Clock3 size={11} />{p.planned_name}</span>}
+        {showAcc && <span className="org-chip c-acc" title="Approves their work"><CornerDownRight size={11} />{accName}</span>}
+        {guide && <span className="org-chip c-guide" title="Guided by"><Compass size={11} />{guide}</span>}
+      </span>}
     </>;
     return canEdit ? <button className={cls} onClick={() => open(p)}>{body}</button> : <div className={cls}>{body}</div>;
   };
   const Branch = ({ p }: { p: OrgPosition }) => {
     const groups = new Map<string, OrgPosition[]>();
     kids(p.id).forEach(k => groups.set(k.group_name, [...(groups.get(k.group_name) ?? []), k]));
-    return <div className="org-col"><Seat p={p} />
+    return <div className={`org-col tone-${toneOf(p)}`}><Seat p={p} />
       {(groups.size > 0 || canEdit) && <div className="org-team">{[...groups].map(([g, seats]) => <div key={g || '_'}>{g && <span className="org-group">{g}</span>}{seats.map(s => <Seat key={s.id} p={s} />)}</div>)}
         {canEdit && <button className="text-button" onClick={() => addSeat(p.id)}><Plus size={14} />Add seat</button>}</div>}
     </div>;
@@ -128,7 +149,7 @@ export function OrgChartScreen({ roles, canEdit, previewData }: { roles: Role[];
     const isOpen = !!needle || expanded.has(p.id);
     const groups = new Map<string, OrgPosition[]>();
     shown.forEach(k => groups.set(k.group_name, [...(groups.get(k.group_name) ?? []), k]));
-    return <div className={`org-m-branch${isOpen ? ' open' : ''}`}>
+    return <div className={`org-m-branch tone-${toneOf(p)}${isOpen ? ' open' : ''}`}>
       <div className="org-m-head"><div className="org-m-seat"><Seat p={p} /></div>
         {members.length > 0 && <button className="org-m-toggle" aria-expanded={isOpen} aria-label={`${isOpen ? 'Hide' : 'Show'} ${members.length} seats under ${p.title}`} onClick={() => setExpanded(prev => { const n = new Set(prev); if (n.has(p.id)) n.delete(p.id); else n.add(p.id); return n; })}><b>{members.length}</b><ChevronDown size={18} /></button>}</div>
       {isOpen && <div className="org-m-body">{[...groups].map(([g, seats]) => <div key={g || '_'}>{g && <span className="org-group">{g}</span>}{seats.map(x => <Seat key={x.id} p={x} />)}</div>)}
@@ -143,26 +164,30 @@ export function OrgChartScreen({ roles, canEdit, previewData }: { roles: Role[];
 
     {chart && me?.user_id && <section className="org-me panel">
       {mySeat ? <>
-        <div className="org-me-block"><span className="org-me-label">You</span><strong>{mySeat.title}</strong></div>
-        <div className="org-me-chain" aria-label="Your reporting line">{chain.length ? chain.map((p, i) => { const h = holderOf(p.id); return <React.Fragment key={p.id}><span className="org-me-arrow">→</span><div className={`org-me-block${i === 0 && !h ? ' vacant' : ''}`}><span className="org-me-label">{i === 0 ? 'Reports to' : 'Then'}</span><strong>{h ? h.name : `${p.planned_name || 'Vacant'} (vacant)`}</strong><small>{p.title}</small></div></React.Fragment>; }) : <span className="muted">Top of the chart.</span>}
-          <span className="org-me-arrow">→</span><div className="org-me-block"><span className="org-me-label">Final</span><strong>Admin</strong><small>{adminLabel}</small></div></div>
-        <p className="org-me-note"><UserCheck size={14} /> Your targets, reports and unlock requests are approved by <strong>{myAcc ? me.accountable_name : adminLabel}</strong>. The admin can always step in.</p>
-        {reportsToMe.size > 0 && <p className="org-me-note"><Users size={14} /> {reportsToMe.size} {reportsToMe.size === 1 ? 'person reports' : 'people report'} to you — switch to <strong>My team</strong> to approve their work.</p>}
+        <div className="org-path" aria-label="Your reporting line">
+          <div className="org-node you"><Avatar name={chart.holders.find(x => x.user_id === me.user_id)?.name ?? 'You'} small /><span><small>You</small><strong>{mySeat.title}</strong></span></div>
+          {chain.map((p, i) => { const h = holderOf(p.id); return <React.Fragment key={p.id}><ChevronRight size={16} className="org-arrow" /><div className={`org-node${h ? '' : ' vacant'}`}>{h ? <Avatar name={h.name} small /> : <span className="org-seat-ghost" />}<span><small>{i === 0 ? 'Reports to' : 'Then'}</small><strong>{h ? h.name : 'Vacant'}</strong></span></div></React.Fragment>; })}
+          <ChevronRight size={16} className="org-arrow" /><div className="org-node admin"><span className="org-node-ico"><ShieldCheck size={16} /></span><span><small>Final</small><strong>{adminLabel}</strong></span></div>
+        </div>
+        <div className="org-me-chips">
+          <span className="org-chip c-acc"><UserCheck size={12} />Approver: {myAcc ? me.accountable_name : adminLabel}</span>
+          {reportsToMe.size > 0 && <span className="org-chip c-team"><Users size={12} />{reportsToMe.size} {reportsToMe.size === 1 ? 'person reports' : 'people report'} to you</span>}
+        </div>
       </> : <p className="org-me-note"><UserCheck size={14} /> {canEdit ? `You are the admin (${adminLabel}) — you can approve anything and edit this chart.` : 'You are not placed on the chart yet. Your admin will set your seat, and your accountable will appear here.'}</p>}
     </section>}
 
     {chart === null && <p className="padded muted">Loading org chart…</p>}
     {chart && !positions.length && !error && <section className="panel"><p className="padded muted">No positions yet. Run <code>supabase/setup_all.sql</code> to load the starting chart.</p></section>}
-    {chart && positions.length > 0 && <div className="org-legend" aria-hidden="true"><span><i className="lg-me" />You</span><span><i className="lg-acc" />Your accountable</span><span><i className="lg-team" />Reports to you</span><span><i className="lg-vac" />Not joined yet</span></div>}
+    {chart && positions.length > 0 && <div className="org-legend" aria-hidden="true"><span><i className="lg-me" />You</span><span><i className="lg-acc" />Approver</span><span><i className="lg-team" />Your team</span><span><i className="lg-vac" />Vacant</span></div>}
     {isMobile && roots.map(root => <section key={root.id} className="org-m-tree">
       <Seat p={root} root />
-      {partners.length > 0 && <div className="org-partners">{partners.map(x => <button key={x.id} className="org-seat partner" onClick={() => open(x)}><span className="org-seat-title">{x.title}</span><strong>{x.planned_name}</strong></button>)}</div>}
+      {partners.length > 0 && <div className="org-partners">{partners.map(x => <button key={x.id} className="org-partner" onClick={() => open(x)}><Briefcase size={13} />{x.title}<b>{x.planned_name}</b></button>)}</div>}
       <label className="org-m-search"><Search size={16} /><input type="search" placeholder="Find a person or seat…" value={find} onChange={e => setFind(e.target.value)} /></label>
       {kids(root.id).map(h => <MobileBranch key={h.id} p={h} />)}
     </section>)}
     {!isMobile && roots.map(root => <section key={root.id} className="panel org-root"><div className="org-scroll" ref={scrollRef}><div className="org-tree">
       <div className="org-top"><Seat p={root} root />
-        {partners.length > 0 && <div className="org-partners">{partners.map(p => <button key={p.id} className="org-seat partner" onClick={() => open(p)}><span className="org-seat-title">{p.title}</span><strong>{p.planned_name}</strong></button>)}</div>}</div>
+        {partners.length > 0 && <div className="org-partners">{partners.map(x => <button key={x.id} className="org-partner" onClick={() => open(x)}><Briefcase size={13} />{x.title}<b>{x.planned_name}</b></button>)}</div>}</div>
       <div className="org-board">{kids(root.id).map(h => <Branch key={h.id} p={h} />)}</div>
     </div></div></section>)}
 

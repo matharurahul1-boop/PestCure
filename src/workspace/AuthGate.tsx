@@ -62,7 +62,7 @@ export function AuthGate({ children }: { children: (auth: AuthContext) => React.
  useEffect(() => authClient.subscribe((next, problem) => { setUser(next); if (problem) setError(problem); setLoading(false); }), []);
  if (loading) return <div className="auth-splash"><span className="auth-spinner" />Checking your session…</div>;
  if (!user) return <SignInScreen initialError={error} />;
- return <>{error && <div role="alert" className="auth-error">{error}</div>}{children({ user, signOut: () => { authClient.signOut().catch(e => setError(e.message)); } })}</>;
+ return <>{error && <div role="alert" className="auth-error">{error}</div>}{children({ user, signOut: () => { try { Object.keys(sessionStorage).filter(k => k.startsWith('pestcure_guide_shown_')).forEach(k => sessionStorage.removeItem(k)); } catch { /* ignore */ } authClient.signOut().catch(e => setError(e.message)); } })}</>;
 }
 function SignInScreen({ initialError }: { initialError: string }) {
  const [mode, setMode] = useState<'signin' | 'signup'>('signin');

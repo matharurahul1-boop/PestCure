@@ -17,7 +17,7 @@ import { applyZohoRow, fetchZoho } from './zoho';
 import { DEFAULT_GRADE_BANDS } from './gradeBands';
 import './schedule.css';
 import { reviewCsv } from './reviewExport';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownToLine, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronLeft, ChevronRight, CircleHelp, ClipboardList, Clock3, FileText, LayoutDashboard, LogOut, Menu, Moon, Plus, Search, Settings2, ShieldCheck, SlidersHorizontal, Sun, Target, Trash2, TrendingUp, UserPlus, Users, X, PanelLeftClose, PanelLeftOpen, Network } from 'lucide-react';
 import { applySampleAvatars, applySampleTargets, normalizeRoleNames, trimEmployeeRows, DEFAULT_PERFORMANCE_COLORS, achievement, ensureExtraRoles, kpiCount, completion, createReview, newField, Person, Review, Role, score, shiftWeek, uid, weekLabel, weekStart, Workspace } from './model';
 import { AssignReportsScreen } from './AssignReportsScreen';
@@ -130,6 +130,7 @@ function WorkspaceShell({ initial, initialRevision, member, auth, teamMode = fal
   const [profileId, setProfileId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [guideAuto, setGuideAuto] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -219,8 +220,15 @@ function WorkspaceShell({ initial, initialRevision, member, auth, teamMode = fal
   const guideRole = guideSelf ? data.roles.find(r => r.id === guideSelf.roleId) : undefined;
   const guideKey = !authUser || teamMode ? null : member ? (guideSelf && guideRole ? `pestcure_guide_${authUser.id}_${guideRole.id}` : null) : `pestcure_guide_${authUser.id}_admin`;
   const guideCards = useMemo(() => !guideKey ? [] : guideSelf && guideRole ? memberGuide({ name: guideSelf.name, roleName: guideRole.name, department: guideRole.department, fields: guideSelf.fields ?? guideRole.fields, hasTeam }) : adminGuide(authUser?.name ?? ''), [guideKey, guideSelf, guideRole, hasTeam, authUser?.name]);
-  useEffect(() => { if (!guideKey) return; try { if (!localStorage.getItem(guideKey)) setGuideOpen(true); } catch { /* storage unavailable: no auto-open */ } }, [guideKey]);
-  const closeGuide = () => { setGuideOpen(false); if (guideKey) { try { localStorage.setItem(guideKey, '1'); } catch { /* ignore */ } } };
+  // right after signing in the guide is the first thing shown (before paint, so the Users screen never flashes). Once per sign-in, unless the person chose "don't show again".
+  useLayoutEffect(() => {
+    if (!guideKey) return;
+    try {
+      const shown = 'pestcure_guide_shown_' + guideKey;
+      if (localStorage.getItem(guideKey) !== 'never' && !sessionStorage.getItem(shown)) { sessionStorage.setItem(shown, '1'); setGuideAuto(true); setGuideOpen(true); }
+    } catch { /* storage unavailable: no auto-open */ }
+  }, [guideKey]);
+  const closeGuide = (forever = false) => { setGuideOpen(false); setGuideAuto(false); if (guideKey && forever) { try { localStorage.setItem(guideKey, 'never'); } catch { /* ignore */ } } };
   const alertItems = useMemo(() => admin ? pending.map(r => ({ id: `p-${r.id}-${r.status}-${r.targetStatus}`, text: `${data.people.find(x => x.id === r.memberId)?.name ?? 'A member'} is waiting for your approval` })) : (data.notifications ?? []).filter(n => n.memberId === actor).map(n => ({ id: n.id, text: n.text })), [admin, pending, data.notifications, data.people, actor]);
   useSystemAlerts(alertItems);
   const approved = reviews.filter(r => r.status === 'approved');
@@ -296,7 +304,7 @@ function WorkspaceShell({ initial, initialRevision, member, auth, teamMode = fal
       {view === 'Missed entries' && <MissedScreen data={data} actor={actor} change={change} />}
       {view === 'Settings' && <><PageHeading title="Workspace settings" />{fullAdmin && <CalendarSettings data={data} change={change} />}{fullAdmin && !MINIMAL_UI && <AttendanceSettings data={data} save={patch => change(d => ({ ...d, ...patch }), 'Attendance settings updated')} />}{fullAdmin && !MINIMAL_UI && <ZohoSettings data={data} save={cfg => change(d => ({ ...d, zoho: cfg }), 'Zoho sync settings updated')} />}<section className="panel settings-panel"><h2>Appearance</h2><div className="theme-options">{(['light', 'dark', 'system'] as const).map(t => <button key={t} className={data.theme === t ? 'chosen' : ''} onClick={() => change(d => ({ ...d, theme: t }))}><span className={`theme-preview ${t}`}><i /><i /><i /></span><strong>{t[0].toUpperCase() + t.slice(1)}</strong>{data.theme === t && <Check size={16} />}</button>)}</div></section>{fullAdmin && <ThresholdSettings data={data} save={(thresholds) => change(d => ({ ...d, thresholds }), 'Performance colors updated')} />}{fullAdmin && <GradeBandSettings data={data} save={(gradeBands) => change(d => ({ ...d, gradeBands }), 'Achievement grade bands updated')} />}{fullAdmin && !MINIMAL_UI && <ReportArchive data={data} change={change} />}<section className="panel settings-panel"><h2>Workspace data</h2><button className="button" onClick={() => download(JSON.stringify(fullAdmin ? data : { ...data, people, reviews: data.reviews.filter(r => r.memberId === actor), activity: data.activity.filter(a => a.memberId === actor), lateRequests: data.lateRequests?.filter(r => r.memberId === actor), reportData: undefined, savedReports: undefined, legacy: undefined, referenceBackup: undefined, reviewRevisions: undefined }, null, 2), 'pestcure-workspace-backup.json', 'application/json')}><ArrowDownToLine size={16} />Download backup</button>{fullAdmin && <><button className="button" style={{ marginTop: 10 }} onClick={async () => { if (!await confirm({ title: 'Remove all sample data?', message: 'All sample users, reviews and demo data are removed. Your roles and settings are kept. Download a backup first.', confirmLabel: 'Remove', destructive: true })) return; change(d => ({ ...d, people: [], reviews: [], reviewRevisions: [], lateRequests: [], targetChangeRequests: [], attendance: [], savedReports: [], reportData: undefined }), 'Sample data cleared — roles kept'); navigate(homeView(true)); }}><Trash2 size={16} />Clear sample data (keep roles)</button><div style={{ marginTop: 18 }}><h3 style={{ fontSize: 15, margin: '0 0 4px' }}>Demo team for testing</h3><p className="small-note" style={{ margin: '0 0 10px' }}>Adds 15 people from the org chart (emails end with {'@demo.pestcure.test'}), each on their own role, with 4 finished weeks and this week in every state: not started, targets proposed, in progress, submitted, sent back and approved, plus a few target-change and unlock requests. They are workspace people, not logins. Run it again to refresh, or remove it when you are done.</p><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button className="button primary" onClick={() => { change(d => applyDemoData(d), 'Demo team loaded — open Weekly reviews, Approvals and Performance'); }}>Load demo data</button><button className="button" disabled={!data.people.some(isDemoPerson)} onClick={async () => { if (!await confirm({ title: 'Remove demo data?', message: 'The demo people and everything they filled in are removed. Real people are not touched.', confirmLabel: 'Remove', destructive: true })) return; change(d => removeDemoData(d), 'Demo data removed'); }}>Remove demo data</button></div></div></>}</section></>}
     </main></div>
-    {guideOpen && guideCards.length > 0 && <GuideTour cards={guideCards} onDone={closeGuide} finishLabel={member ? 'Start' : 'Got it'} />}
+    {guideOpen && guideCards.length > 0 && <GuideTour cards={guideCards} onDone={closeGuide} allowSkipForever={guideAuto} finishLabel={member ? 'Start' : 'Got it'} />}
     {moreOpen && <MoreSheet
       items={navigation.filter(n => (MINIMAL_UI ? navFor(admin, teamMode).includes(n.name) : (admin || !['Users', 'Roles', 'Performance', 'Achievement breakdown'].includes(n.name))) && !mobileNav.includes(n.name)).map(n => ({ name: n.name, icon: n.icon, active: view === n.name, badge: n.name === 'Approvals' ? pending.length + pendingTargetChanges.length : n.name === 'Missed entries' ? pendingUnlocks.length : 0 }))}
       user={{ name: actorName, avatarUrl: actorAvatar, subtitle: teamMode ? 'Team approvals' : admin ? 'Workspace admin' : 'Team member' }}
