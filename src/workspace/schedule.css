@@ -1,0 +1,10 @@
+.schedule-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 24px; }
+.schedule-stats .panel { padding: 22px; display: flex; gap: 12px; align-items: center; }
+.schedule-stats strong { font-size: 30px; }
+.schedule-stats span { font-size: 14px; color: var(--muted); }
+.schedule-empty { padding: 36px; text-align: center; color: var(--muted); }
+.schedule-cell-label { display: block; max-width: 520px; margin-top: 6px; line-height: 1.5; white-space: normal; }
+.settings-panel h2 { display: flex; align-items: center; gap: 10px; }
+.settings-panel > label { display: grid; gap: 8px; max-width: 360px; margin: 20px 0; }
+.overview-toolbar > input, .overview-toolbar > select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: inherit; }
+@media (max-width: 700px) { .schedule-stats { grid-template-columns: 1fr; gap: 10px; } .schedule-stats .panel { padding: 15px; } .overview-toolbar > input { width: 100%; } }

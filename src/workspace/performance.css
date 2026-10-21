@@ -1,0 +1,23 @@
+.report-filters { padding: 20px; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin-bottom: 20px; }
+.report-filters label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.report-filters select,.report-filters input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: inherit; }
+.report-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin: 20px 0; }
+.report-stats section { padding: 24px; display: grid; gap: 12px; }
+.report-stats strong { font-size: 38px; letter-spacing: -1px; }
+.report-stats span,.report-stats small { font-size: 13px; color: var(--muted); }
+.report-chart { margin-bottom: 24px; }
+.report-chart h2 { display: flex; gap: 9px; align-items: center; }
+.report-bars { display: flex; gap: 12px; overflow-x: auto; padding: 20px 26px; }
+.report-bar { flex: 1 0 54px; display: flex; flex-direction: column; align-items: center; gap: 12px; border: 0; padding: 6px; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.report-bar.chosen { outline: 2px solid #d77b44; }
+.report-bar strong { font-size: 13px; }
+.report-bar small { font-size: 13px; white-space: nowrap; }
+.report-bar-track { height: 150px; width: 30px; display: flex; align-items: flex-end; background: rgba(120,130,145,.07); border-radius: 5px; overflow: hidden; }
+.report-bar-track i { width: 100%; border-radius: 5px 5px 0 0; }
+.report-chart .table-footnote { padding: 0 24px 18px; }
+.report-records { margin-top: 24px; }
+.report-pagination { padding: 18px 24px; display: flex; gap: 18px; align-items: center; justify-content: flex-end; font-size: 13px; }
+@media(max-width:1200px) { .report-filters { grid-template-columns: 1fr 1fr; } .report-stats { grid-template-columns: 1fr; gap: 10px; } .report-stats section { padding: 18px; } }
+
+.performance.warm strong,.computed-cell.warm,.metric-result.warm{color:var(--red)}.chart-fill.warm{background:var(--red)}.score-ring.warm{background:conic-gradient(var(--red) var(--progress),var(--subtle) 0)}
+

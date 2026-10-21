@@ -1,0 +1,144 @@
+/* Navigation geometry is declared last so desktop styling cannot override the drawer. */
+.workspace { --nav-gap: 12px; }
+.workspace .sidebar {
+ inset: var(--nav-gap) auto var(--nav-gap) var(--nav-gap);
+ width: var(--sidebar-width); border: 1px solid var(--border); border-radius: 18px;
+ padding: 16px 12px; overflow: hidden;
+ box-shadow: 0 8px 30px #102b4f0c;
+}
+.workspace .main-shell { margin-left: calc(var(--sidebar-width) + 24px); width: calc(100% - var(--sidebar-width) - 24px); }
+.workspace .sidebar .brand { flex-shrink: 0; margin: 36px 0 20px; }
+.workspace .collapse-nav { top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 10px; box-shadow: none; }
+.workspace .sidebar nav { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: 12px; }
+.workspace .sidebar nav button, .workspace .sidebar-bottom > button { min-height: 44px; flex-shrink: 0; }
+.workspace .sidebar svg { flex-shrink: 0; }
+.workspace .sidebar-bottom { flex-shrink: 0; margin-top: 8px; padding-top: 8px; }
+.workspace .sidebar-profile { padding: 10px 8px; }
+.workspace .drawer-close { display: none; }
+.workspace .template-card { min-width: 0; }
+.workspace .template-card h2, .workspace .template-card > p, .workspace .kra-tags > span { overflow-wrap: anywhere; }
+.workspace .template-footer { flex-wrap: wrap; }
+.workspace .template-callout > div, .workspace .page-heading > div { min-width: 0; }
+.workspace .page-footer { gap: 10px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.workspace .sidebar button:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+@media (min-width: 721px) and (max-width: 1050px) {
+ .workspace:not(.nav-collapsed) { --sidebar-width: 224px; }
+}
+@media (max-width: 720px) {
+ .workspace, .workspace.nav-collapsed { --sidebar-width: 0px; }
+ .workspace .main-shell { margin-left: 0; width: 100%; }
+ .workspace .sidebar, .workspace.nav-collapsed .sidebar {
+  width: min(300px, calc(100vw - 24px)); padding: 16px;
+  transform: translateX(calc(-100% - 24px)); visibility: hidden;
+  transition: transform .22s ease, visibility .22s;
+ }
+ .workspace .sidebar.open { transform: translateX(0); visibility: visible; }
+ .workspace .drawer-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--subtle); }
+ .workspace .sidebar .brand { margin: 22px 0; }
+ .workspace.nav-collapsed .sidebar nav button, .workspace.nav-collapsed .sidebar-bottom > button { justify-content: flex-start; padding: 12px; }
+ .workspace.nav-collapsed .sidebar nav button > span, .workspace.nav-collapsed .sidebar-bottom > button span { display: inline; }
+ .workspace.nav-collapsed .sidebar-profile > span:not(.avatar) { display: block; }
+ .workspace.nav-collapsed .sidebar-profile { justify-content: flex-start; padding: 10px 8px; }
+ .workspace.nav-collapsed .sidebar nav button b { position: static; transform: none; margin-left: auto; }
+ .workspace.nav-collapsed .sidebar nav button.active { box-shadow: none; }
+ .workspace .topbar { padding: 0 12px; gap: 8px; }
+ .workspace .breadcrumb { min-width: 0; }
+ .workspace .breadcrumb strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ .workspace .topbar-actions { flex-shrink: 0; gap: 4px; }
+ .workspace .main-shell main { padding: 22px 16px 0; }
+ .workspace .page-heading, .workspace .page-actions { flex-wrap: wrap; }
+ .workspace .page-heading > .button { margin-top: 0; }
+ .workspace .template-grid { grid-template-columns: minmax(0, 1fr); }
+ .workspace .template-card { padding: 20px; }
+ .workspace .page-heading h1 { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .workspace .sidebar, .workspace .main-shell { transition: none; } }
+@media print { .workspace .main-shell { width: 100%; margin: 0; } }
+/* Quiet surfaces and compact, readable cards. */
+.workspace { background: var(--bg); --shadow: 0 2px 6px #102b4f04; }
+.workspace .topbar { background: var(--bg); border-bottom: 0; height: 72px; }
+.workspace .local-label { display: none; }
+.workspace .page-heading { margin-bottom: 22px; }
+.workspace .page-heading h1 { font-size: 31px; letter-spacing: -.8px; font-weight: 750; color: var(--text); }
+.workspace .panel { border-radius: 16px; box-shadow: 0 2px 5px #102b4f04; }
+.workspace .button { border-radius: 10px; min-height: 38px; box-shadow: none; }
+.workspace .button.primary { background: var(--orange); border-color: var(--orange); box-shadow: none; }
+.workspace .button.primary:hover { background: var(--orange-hover); }
+.workspace .template-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.workspace .template-card { display: flex; flex-direction: column; padding: 22px; transition: border-color .16s, box-shadow .16s; }
+.workspace .template-card:hover { border-color: color-mix(in srgb,var(--green) 40%,var(--border)); box-shadow: 0 6px 18px #102b4f08; }
+.workspace .template-card-top { margin-bottom: 20px; }
+.workspace .template-icon { width: 40px; height: 40px; border-radius: 12px; }
+.workspace .template-card h2 { font-size: 17px; font-weight: 650; line-height: 1.5; letter-spacing: -.25px; margin-bottom: 20px; }
+.workspace .template-footer { margin-top: auto; padding-top: 16px; }
+.workspace .template-footer > span { font-size: 13px; }
+.workspace .template-card .mini-tag { border: 0; background: var(--subtle); border-radius: 20px; padding: 5px 9px; font-size: 12px; }
+.workspace .template-toolbar .search-box { max-width: 360px; border-radius: 11px; }
+.workspace .sidebar nav button.active { box-shadow: none; background: color-mix(in srgb,var(--green) 10%,var(--surface)); }
+.workspace .sidebar nav button.active::before { display: none; }
+.workspace .page-footer { border-top: 0; padding-top: 24px; padding-bottom: 20px; }
+.workspace .member-card { border-radius: 16px; }
+@media(max-width:720px) {
+ .workspace .topbar { height: 64px; }
+ .workspace .page-heading h1 { font-size: 27px; }
+ .workspace .template-toolbar .search-box { max-width: none; }
+ .workspace .template-card { padding: 20px; }
+ .workspace .template-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (min-width: 721px) { .workspace .sidebar, .workspace .main-shell { transition: none; } }
+/* Forest green, ivory and restrained brass accents from the PestCure identity. */
+.workspace {
+ --brand-green: #246346; --brand-green-deep: #194a34; --brand-deep: #193e2c;
+ --brand-sky: #477d5b; --brand-orange: #246346;
+ --orange: #246346; --orange-hover: #194a34; --tint: #edf4ed;
+ --bg: #f5f6f1; --surface: #ffffff; --subtle: #f0f4ee; --border: #e1e7dd;
+ --text: #26382d; --soft: #536558; --muted: #728174; --pc-gold: #aa8c4a;
+ background: radial-gradient(ellipse at 90% 0%, #e5eee280, transparent 45%), var(--bg);
+}
+.workspace[data-theme=dark] {
+ --brand-green: #85bf96; --brand-green-deep: #a7d5b3; --brand-deep: #dcebdd;
+ --brand-sky: #85bf96; --brand-orange: #85bf96;
+ --orange: #85bf96; --orange-hover: #a7d5b3; --tint: #22392a;
+ --bg: #111b16; --surface: #19251e; --subtle: #213126; --border: #304235;
+ --text: #e2ece3; --soft: #bed0c0; --muted: #96ac9b; --pc-gold: #c4ae76;
+ background: radial-gradient(ellipse at 90% 0%, #28433345, transparent 45%), var(--bg);
+}
+.workspace .sidebar {
+ background: linear-gradient(165deg, var(--surface), var(--subtle));
+ border-color: var(--border); box-shadow: 0 10px 36px #13342109;
+}
+.workspace .sidebar nav button.active { background: var(--orange); color: var(--surface); }
+.workspace .sidebar nav button.active svg { color: inherit; }
+.workspace .sidebar nav button { transition: background .18s ease, color .18s ease; }
+.workspace .sidebar nav button:hover:not(.active) { background: var(--tint); color: var(--orange); }
+.workspace .sidebar nav button svg { transition: transform .18s ease, color .18s ease; }
+.workspace .sidebar nav button:hover svg { transform: translateY(-1px); }
+.workspace .sidebar-profile { background: transparent; border-color: transparent; }
+.workspace .topbar { background: transparent; }
+.workspace .main-shell main { padding-bottom: 28px; }
+.workspace .panel { border: 1px solid var(--border); box-shadow: 0 2px 8px #183e2604; }
+.workspace .template-icon { color: var(--orange); background: var(--tint); }
+.workspace .template-icon.tone-1 { color: var(--pc-gold); background: color-mix(in srgb,var(--pc-gold) 12%,var(--surface)); }
+.workspace .template-icon.tone-2 { color: var(--brand-sky); background: var(--subtle); }
+.workspace .button.primary { background: linear-gradient(135deg,var(--orange),var(--orange-hover)); color: var(--surface); border-color: transparent; }
+.workspace .button, .workspace .icon-button, .workspace .text-button { transition: background .18s, border-color .18s, transform .18s, box-shadow .18s; }
+.workspace .button:active:not(:disabled), .workspace .icon-button:active { transform: scale(.97); }
+.workspace .button.primary:hover:not(:disabled) { box-shadow: 0 4px 12px color-mix(in srgb,var(--orange) 18%,transparent); }
+.workspace .text-button svg { transition: transform .2s ease; }
+.workspace .text-button:hover svg { transform: translateX(3px); }
+.workspace .template-card, .workspace .member-card { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+@media (hover:hover) {
+ .workspace .template-card:hover, .workspace .member-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb,var(--orange) 35%,var(--border)); box-shadow: 0 10px 24px #1436230c; }
+}
+@keyframes pc-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pc-dialog { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.workspace .page-heading, .workspace .template-card, .workspace .member-card { animation: pc-enter .32s ease backwards; }
+.workspace .template-card:nth-child(3n+2), .workspace .member-card:nth-child(3n+2) { animation-delay: .04s; }
+.workspace .template-card:nth-child(3n+3), .workspace .member-card:nth-child(3n+3) { animation-delay: .08s; }
+.workspace .modal { animation: pc-dialog .2s ease; }
+.workspace .table-scroll tbody tr { transition: background .16s ease; }
+.workspace .table-scroll tbody tr:hover { background: color-mix(in srgb,var(--tint) 65%,var(--surface)); }
+@media(prefers-reduced-motion:reduce) {
+ .workspace *, .workspace *::before, .workspace *::after { animation: none !important; transition: none !important; }
+ .workspace .template-card:hover, .workspace .member-card:hover { transform: none; }
+}
