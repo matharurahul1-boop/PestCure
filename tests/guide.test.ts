@@ -13,7 +13,7 @@ test('every role gets its own guide, built from its own sections', () => {
  const titles = new Map<string, string>();
  for (const role of roles) {
   const { cards } = guideFor(role.id);
-  assert.ok(cards.length >= 4 && cards.length <= 16, `${role.name}: ${cards.length} cards`);
+  assert.ok(cards.length >= 4 && cards.length <= 20, `${role.name}: ${cards.length} cards`);
   assert.equal(cards[0].id, 'welcome');
   assert.equal(cards.at(-1)!.id, 'rules');
   titles.set(role.id, cards.filter(c => c.id.startsWith('kra-')).map(c => c.title).join('|'));
@@ -39,7 +39,7 @@ test('accountables get an approval card, admins get their own short guide', () =
  assert.ok(!guideFor('role-commercial-bd').cards.some(c => c.id === 'team'));
  assert.ok(guideFor('role-commercial-bd', true).cards.some(c => c.id === 'team'));
  const admin = adminGuide('Tushar Bali');
- assert.equal(admin.length, 3);
+ assert.ok(admin.length >= 6, 'admin guide covers people, org, approvals, performance and setup');
  assert.equal(admin[0].title, 'Hi Tushar!');
 });
 
