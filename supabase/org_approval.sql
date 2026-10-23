@@ -15,11 +15,11 @@
 
 begin;
 
--- ---- admin emails (EDIT here; add Ranjan sir's email later) -----------------
+-- ---- admin emails (EDIT here; Tushar and Ranjan sir) -----------------
 create table if not exists public.admin_emails (email text primary key);
 alter table public.admin_emails enable row level security;
 revoke all on public.admin_emails from anon, authenticated;
-insert into public.admin_emails (email) values ('tusharbali855@gmail.com') on conflict do nothing;
+insert into public.admin_emails (email) values ('tusharbali855@gmail.com'), ('rks@pest-cure.com') on conflict do nothing;
 
 -- ---- app_users: approval status ----------------------------------------------
 alter table public.app_users add column if not exists status text not null default 'approved';

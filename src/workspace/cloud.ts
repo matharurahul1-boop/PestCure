@@ -1,5 +1,6 @@
 import { backend, supabase } from './auth';
 import { api, ApiError } from './api';
+import { workspaceOwnerFor } from './sharedOwner';
 import type { Review, Workspace } from './model';
 import { templatesOnlyWorkspace } from './reportData';
 import { filterForMember } from './memberFilter';
@@ -50,7 +51,9 @@ async function loadSupabaseWorkspace(userId: string): Promise<LoadResult> {
     }
   }
 
-  const { data, error } = await supabase!.from('workspaces').select('data, revision').eq('owner_id', userId).maybeSingle();
+  // admins all work in the same (oldest admin) workspace; anyone else gets their own
+  const ownerId = isAdmin ? await workspaceOwnerFor(userId) : userId;
+  const { data, error } = await supabase!.from('workspaces').select('data, revision').eq('owner_id', ownerId).maybeSingle();
   if (error) throw error;
   if (data) return { workspace: data.data as Workspace, revision: data.revision as number };
 
@@ -63,7 +66,8 @@ async function loadSupabaseWorkspace(userId: string): Promise<LoadResult> {
 }
 
 async function saveSupabaseWorkspace(userId: string, workspace: Workspace, revision: number): Promise<number> {
-  const { data, error } = await supabase!.from('workspaces').update({ data: workspace, revision: revision + 1, updated_at: new Date().toISOString() }).eq('owner_id', userId).eq('revision', revision).select('revision').maybeSingle();
+  const ownerId = await workspaceOwnerFor(userId);
+  const { data, error } = await supabase!.from('workspaces').update({ data: workspace, revision: revision + 1, updated_at: new Date().toISOString() }).eq('owner_id', ownerId).eq('revision', revision).select('revision').maybeSingle();
   if (error) throw error;
   if (!data) throw new Error(CONFLICT);
   return data.revision;

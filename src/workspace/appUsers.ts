@@ -1,5 +1,6 @@
 import { backend, supabase } from './auth';
 import { api } from './api';
+import { workspaceOwnerFor } from './sharedOwner';
 
 /**
  * A row in public.app_users — one per sign-up (see supabase/users_table.sql; the local SQLite
@@ -58,8 +59,8 @@ export async function linkMember(userId: string, personId: string, email: string
   if (backend === 'local') { await api(`/users/${encodeURIComponent(userId)}/link`, { body: { personId, email } }); return; }
   if (!supabase) return;
   const { data: me } = await supabase.auth.getUser();
-  const adminId = me.user?.id;
-  if (!adminId) return;
+  if (!me.user?.id) return;
+  const adminId = await workspaceOwnerFor(me.user.id);   // members belong to the shared admin workspace, whichever admin approves them
   const { error } = await supabase.from('member_links').upsert(
     { user_id: userId, admin_id: adminId, person_id: personId, email },
     { onConflict: 'user_id' },

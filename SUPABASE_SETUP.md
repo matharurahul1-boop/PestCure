@@ -84,3 +84,7 @@ Re-run `supabase/setup_all.sql` once (adds the `inactive` status and `set_user_a
 
 - **Deactivate** (Users screen, user-off icon): the account can no longer sign in, gives up its org seat (their reports' approvals route to the next accountable / admin), stops getting push alerts and no new reports are generated. Everything already written is kept. Deactivated people appear under **Inactive** with a **Reactivate** button.
 - **Change role** (pick another role on the user's card → Assign): mid-week, this week's report (and its daily/monthly sheets) stays on the old role with the same form and scoring. The new role starts from the next week of the review cycle: the card shows "From <date>: <role>", the calendar switches the person on that day, and next week's report is built from the new role. Past reports stay pinned to the role they were written on and the old role is listed on the card ("Earlier: …"). Picking the current role again cancels a scheduled change. A person with no report yet this week switches immediately.
+
+## More than one admin (Tushar + Ranjan sir)
+
+Run `supabase/add_admin.sql` (adds `rks@pest-cure.com` as an admin) and `supabase/shared_admin.sql` (or the full `pending_update.sql`). All admins then work in one shared workspace, the oldest admin workspace (Tushar's): same users, reviews, org chart and settings. Members approved by either admin belong to that shared workspace. Two admins saving at the same moment can hit a "changed elsewhere" message; reload and redo the edit.

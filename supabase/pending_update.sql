@@ -1,5 +1,5 @@
 -- PestCure: pending Supabase update (paste into the SQL editor and Run). Safe to re-run.
--- Adds: status "inactive" for app_users, set_user_active() RPC, push_subscriptions table, push_audience() function.
+-- Adds: shared admin workspace, status "inactive" for app_users, set_user_active() RPC, push_subscriptions table, push_audience() function.
 
 -- ---- 1. app_users.status may now be "inactive" (deactivated user) ------------------------------
 alter table public.app_users drop constraint if exists app_users_status_check;
@@ -79,3 +79,29 @@ begin
 end $$;
 revoke all on function public.push_audience(uuid, text, text) from public, anon, authenticated;
 do $g$ begin if exists (select 1 from pg_roles where rolname = 'service_role') then grant execute on function public.push_audience(uuid, text, text) to service_role; end if; end $g$;
+
+
+-- ---- 4. all admins share one workspace (Tushar and Ranjan sir see the same data) ---------------
+-- All admins work in ONE shared workspace (the oldest admin workspace, i.e. Tushar's).
+-- Without this every admin would get their own empty workspace. Safe to re-run.
+
+create or replace function public.shared_workspace_owner()
+returns uuid language sql stable security definer set search_path = public as $$
+  select w.owner_id
+    from public.workspaces w
+    join public.admins a on a.user_id = w.owner_id
+   where public.is_admin()
+   order by w.created_at asc
+   limit 1
+$$;
+revoke all on function public.shared_workspace_owner() from public, anon;
+grant execute on function public.shared_workspace_owner() to authenticated;
+
+-- any admin may read and save the shared workspace (on top of the owner's own policies)
+drop policy if exists workspace_admin_select on public.workspaces;
+drop policy if exists workspace_admin_update on public.workspaces;
+create policy workspace_admin_select on public.workspaces for select to authenticated
+  using (public.is_admin() and owner_id = public.shared_workspace_owner());
+create policy workspace_admin_update on public.workspaces for update to authenticated
+  using (public.is_admin() and owner_id = public.shared_workspace_owner())
+  with check (public.is_admin() and owner_id = public.shared_workspace_owner());
