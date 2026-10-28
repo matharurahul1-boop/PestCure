@@ -9,7 +9,7 @@
     "preview": "node ./node_modules/vite/bin/vite.js preview",
     "clean": "rm -rf dist server.js",
     "lint": "node ./node_modules/typescript/bin/tsc --noEmit",
-    "test": "node --import tsx --disable-warning=ExperimentalWarning --test tests/workspace.test.ts tests/referenceForms.test.ts tests/schedule.test.ts tests/performance.test.ts tests/attendance.test.ts tests/achievementBreakdown.test.ts tests/targetGovernance.test.ts tests/reportData.test.ts tests/supabase.test.ts tests/localBackend.test.ts tests/reminders.test.ts tests/orgApproval.test.ts tests/approvalsAccess.test.ts tests/pushAudience.test.ts tests/lifecycle.test.ts tests/guide.test.ts tests/sharedAdmin.test.ts tests/scopedSync.test.ts tests/orgChartLogic.test.ts tests/demoData.test.ts",
+    "test": "node --import tsx --disable-warning=ExperimentalWarning --test tests/workspace.test.ts tests/referenceForms.test.ts tests/schedule.test.ts tests/performance.test.ts tests/attendance.test.ts tests/achievementBreakdown.test.ts tests/targetGovernance.test.ts tests/reportData.test.ts tests/supabase.test.ts tests/localBackend.test.ts tests/reminders.test.ts tests/orgApproval.test.ts tests/approvalsAccess.test.ts tests/pushAudience.test.ts tests/lifecycle.test.ts tests/guide.test.ts tests/sharedAdmin.test.ts tests/scopedSync.test.ts tests/orgChartLogic.test.ts tests/demoData.test.ts tests/blockers.test.ts",
     "supabase:export": "node --import tsx scripts/export-supabase-data.ts",
     "server": "node --import tsx --disable-warning=ExperimentalWarning server/index.ts"
   },

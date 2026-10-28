@@ -1,3 +1,4 @@
+import { OpenBlockers } from './BlockerPanels';
 import React from 'react';
 import { ArrowRight, CalendarCheck, CalendarClock, CalendarDays, ClipboardList, Clock3, TrendingUp } from 'lucide-react';
 import { completion, score, weekLabel, type Review, type Workspace } from './model';
@@ -9,14 +10,14 @@ import { Avatar } from './Avatar';
 import { notificationIcon, timeAgo, useReadNotifications } from './NotificationBell';
 import './dashboard.css';
 
-type View = 'Weekly reviews' | 'Daily & monthly' | 'Missed entries';
+type View = 'Blocker logs' | 'Weekly reviews' | 'Daily & monthly' | 'Missed entries';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const fmt = (n: number | null) => (n === null ? '—' : `${n}%`);
 
 /** Home screen for a signed-in team member: their own progress, what needs attention, and quick links. */
-export function MemberDashboard({ data, personId, statusOf, open, go, goKind }: {
-  data: Workspace; personId: string; statusOf: (r: Review) => string;
+export function MemberDashboard({ data, personId, statusOf, open, go, goKind, completeBlocker }: {
+  completeBlocker: (reviewId: string, id: string) => void; data: Workspace; personId: string; statusOf: (r: Review) => string;
   open: (r: Review) => void; go: (view: View) => void; goKind: (kind: 'daily' | 'monthly') => void;
 }) {
   const bands = data.gradeBands?.length ? data.gradeBands : DEFAULT_GRADE_BANDS;
@@ -75,6 +76,7 @@ export function MemberDashboard({ data, personId, statusOf, open, go, goKind }: 
 
     <div className="md-tiles">{tiles.map(t => <button key={t.title} className={`md-tile ${t.tone}`} onClick={t.onClick}><span className="md-tile-icon">{t.icon}</span><span className="md-tile-body"><strong>{t.title}</strong><b>{t.value}</b><small>{t.sub}</small></span><ArrowRight size={16} /></button>)}</div>
 
+    <OpenBlockers reviews={mine} complete={completeBlocker} logs={() => go('Blocker logs')} />
     <div className="md-stats">
       <section className="panel perf-stat"><span className="perf-stat-label"><TrendingUp size={16} />4-week average</span><strong style={{ color: matchBand(fourWeek, bands).colorText }}>{fmt(fourWeek)}</strong><small>{scored.length ? `Across your last ${Math.min(4, scored.length)} scored weeks` : 'Appears after your first scored review'}</small></section>
       <section className="panel perf-stat"><span className="perf-stat-label"><CalendarCheck size={16} />Reviews submitted</span><strong>{submittedCount}</strong><small>of {weekly.length} weekly reviews</small></section>

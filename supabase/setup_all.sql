@@ -518,6 +518,16 @@ begin
           from jsonb_array_elements(coalesce(v_out->idx->'comments', '[]'::jsonb)) c
          where not exists (select 1 from jsonb_array_elements(coalesce(it->'comments', '[]'::jsonb)) m where m->>'id' = c->>'id');
         if jsonb_array_length(extra) > 0 then it := jsonb_set(it, '{comments}', coalesce(it->'comments', '[]'::jsonb) || extra, true); end if;
+
+        if (v_out->idx ? 'blockerItems') or (it ? 'blockerItems') then
+          select coalesce(jsonb_agg(b.value || case when old.value->>'completedAt' is not null then jsonb_build_object('completedAt', old.value->'completedAt') else '{}'::jsonb end order by b.ord), '[]'::jsonb) into extra
+          from jsonb_array_elements(coalesce(it->'blockerItems', '[]'::jsonb)) with ordinality b(value,ord)
+          left join lateral (select value from jsonb_array_elements(coalesce(v_out->idx->'blockerItems', '[]'::jsonb)) where value->>'id'=b.value->>'id' limit 1) old on true;
+          select extra || coalesce(jsonb_agg(c), '[]'::jsonb) into extra
+          from jsonb_array_elements(coalesce(v_out->idx->'blockerItems', '[]'::jsonb)) c
+          where not exists (select 1 from jsonb_array_elements(coalesce(it->'blockerItems', '[]'::jsonb)) m where m->>'id'=c->>'id');
+          it := jsonb_set(it, '{blockerItems}', extra, true);
+        end if;
       end if;
       v_out := jsonb_set(v_out, array[idx::text], it);
     end if;

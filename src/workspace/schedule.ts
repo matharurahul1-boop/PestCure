@@ -1,3 +1,4 @@
+import { isBlockerCompletion } from './blockers';
 import { createReview, type Field, type Review, type Workspace } from './model';
 import { type CellValue, type Column } from './tableModel';
 import { inheritTargets, latestApprovedReview } from './targetGovernance';
@@ -178,6 +179,7 @@ export function submitLateEntry(state: Workspace, id: string, actor: string, val
 
 // All normal result writes pass this guard, including a form left open across midnight.
 export function guardReviewUpdate(previous: Review, next: Review, now = new Date()) {
+  if (isBlockerCompletion(previous, next)) return next;
   // Comments are conversation, not data: they stay open on closed periods.
   const bare = (r: Review) => JSON.stringify({ ...r, comments: undefined, updatedAt: undefined });
   if (bare(previous) === bare(next)) return next;

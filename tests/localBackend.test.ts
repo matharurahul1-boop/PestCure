@@ -142,5 +142,12 @@ test('linked members see only their own report and can write only their own revi
     assert.equal(after.workspace.reviews.find((r: any) => r.id === mine.id).highlights, 'edited by member');
     assert.equal(after.workspace.reviews.find((r: any) => r.id === foreign.id).highlights, foreign.highlights);
     assert.equal(after.revision, 1);
+    const active = {...mine,blockerItems:[{id:'b1',text:'Need supplies'}]};
+    assert.equal((await member.call('POST','/workspace/member-review',{review:active})).status,200);
+    const done = {...active,blockerItems:[{...active.blockerItems[0],completedAt:'2026-10-28T12:00:00Z'},{id:'b2',text:'Need help'}]};
+    assert.equal((await member.call('POST','/workspace/member-review',{review:done})).status,200);
+    await member.call('POST','/workspace/member-review',{review:active});
+    const stored = (await member.call('GET','/workspace')).body.workspace.reviews.find((r:any)=>r.id===mine.id).blockerItems;
+    assert.equal(stored.length,2); assert.equal(stored[0].completedAt,'2026-10-28T12:00:00Z');
   } finally { server.close(); }
 });

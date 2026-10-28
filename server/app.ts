@@ -1,3 +1,4 @@
+import { mergeBlockers, type Blocker } from '../src/workspace/blockers';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -223,7 +224,7 @@ export function createApi(options: ServerOptions) {
       const user = (req as AuthedRequest).user;
       const link = linkOf(user.id);
       if (!link) throw new HttpError(403, 'Not a linked member.');
-      const review = (req.body ?? {}).review as { id?: unknown; memberId?: unknown } | undefined;
+      const review = (req.body ?? {}).review as { id?: unknown; memberId?: unknown; blockerItems?: Blocker[] } | undefined;
       if (!review || typeof review !== 'object' || typeof review.id !== 'string') throw new HttpError(400, 'A review is required.');
       if (review.memberId !== link.person_id) throw new HttpError(403, 'That review does not belong to you.');
       const row = workspaceOf(link.admin_id);
@@ -231,6 +232,9 @@ export function createApi(options: ServerOptions) {
       const data = JSON.parse(row.data) as { reviews: Array<{ id: string }> };
       const index = data.reviews.findIndex(r => r.id === review.id);
       if (index >= 0) {
+        const previous = data.reviews[index] as { memberId?: string; blockerItems?: Blocker[] };
+        if (previous.memberId !== link.person_id) throw new HttpError(403, 'That review does not belong to you.');
+        if (previous.blockerItems || review.blockerItems) review.blockerItems = mergeBlockers(previous.blockerItems ?? [], review.blockerItems ?? []);
         // keep comments the member's copy has not seen yet (an admin may have replied meanwhile)
         const existing = ((data.reviews[index] as { comments?: Array<{ id: string }> }).comments ?? []);
         const mine = new Set(((review as { comments?: Array<{ id: string }> }).comments ?? []).map(c => c.id));

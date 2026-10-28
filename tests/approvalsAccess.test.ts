@@ -103,5 +103,14 @@ test('scoped workspace + accountable approvals', async () => {
  assert.equal((await rpc('member_workspace')).team, null);
  await as(DAN);
  assert.deepEqual((await rpc('member_workspace')).teamPersonIds, ['pb']);
+
+ await as(BOB);
+ const blockerReview = (await rpc('member_workspace')).own.reviews.find((r: any) => r.id === 'rb');
+ const active = {...blockerReview, blockerItems:[{id:'b1',text:'Need supplies'}]};
+ await rpc('member_apply', {reviews:[active]});
+ await rpc('member_apply', {reviews:[{...active,blockerItems:[{...active.blockerItems[0],completedAt:'2026-10-28T12:00:00Z'},{id:'b2',text:'Need help'}]}]});
+ await rpc('member_apply', {reviews:[active]});
+ const stored = (await rpc('member_workspace')).own.reviews.find((r: any) => r.id === 'rb').blockerItems;
+ assert.equal(stored.length,2); assert.equal(stored[0].completedAt,'2026-10-28T12:00:00Z');
  await db.close();
 });
