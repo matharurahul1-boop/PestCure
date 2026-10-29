@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, CircleHelp, LogOut, Settings2 } from 'lucide-react';
+import { ChevronRight, CircleHelp, ExternalLink, Gift, LogOut, Settings2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Avatar } from './Avatar';
 
 export type MoreItem = { name: string; label?: string; icon: LucideIcon; badge?: number; active?: boolean };
 
 /** iOS-style bottom sheet behind the "More" tab on phones: a profile header and grouped, tappable rows. */
-export function MoreSheet({ items, user, onSelect, onSettings, onHelp, onSignOut, close, settingsActive }: {
+export function MoreSheet({ items, user, onSelect, onSettings, onHelp, onSignOut, close, settingsActive, referUrl }: {
+  referUrl?: string;
   items: MoreItem[]; user: { name: string; avatarUrl?: string; subtitle: string };
   onSelect: (name: string) => void; onSettings: () => void; onHelp: () => void; onSignOut?: () => void; close: () => void; settingsActive?: boolean;
 }) {
@@ -42,6 +43,7 @@ export function MoreSheet({ items, user, onSelect, onSettings, onHelp, onSignOut
         <div className="more-profile"><Avatar name={user.name} url={user.avatarUrl} /><span><strong>{user.name}</strong><small>{user.subtitle}</small></span></div>
         <div className="more-scroll">
           {items.length > 0 && <div className="more-group">{items.map(n => row(n.name, <n.icon size={18} />, n.label ?? n.name, go(() => onSelect(n.name)), { badge: n.badge, active: n.active }))}</div>}
+          {referUrl && <div className="more-group"><a className="more-row refer" href={referUrl} target="_blank" rel="noopener noreferrer" onClick={close}><span className="more-icon"><Gift size={18} /></span><span className="more-label">Refer &amp; earn</span><ExternalLink size={16} className="more-chev" /></a></div>}
           <div className="more-group">
             {row('settings', <Settings2 size={18} />, 'Settings', go(onSettings), { active: settingsActive })}
             {row('help', <CircleHelp size={18} />, 'How it works', go(onHelp))}

@@ -292,3 +292,8 @@
   .workspace .page-actions .button svg{flex:none;color:var(--green,#1b6a43)}
   .workspace .page-actions .button:disabled svg{opacity:.5}
 }
+
+/* Refer & earn row in the phone "More" sheet */
+.workspace a.more-row{text-decoration:none}
+.workspace .more-row.refer .more-icon{background:linear-gradient(135deg,#f59e0b,#ea6a0a)}
+.workspace .more-row.refer .more-label{font-weight:700}

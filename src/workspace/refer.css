@@ -1,0 +1,18 @@
+/* "Refer & earn": a warm saffron button that stands out from the green sidebar */
+.workspace .refer-button{position:relative;isolation:isolate;display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;margin:0 0 10px;border-radius:14px;overflow:hidden;text-decoration:none;color:#fff;font-size:13.5px;font-weight:700;letter-spacing:.01em;background:linear-gradient(120deg,#f59e0b,#ea6a0a);box-shadow:0 10px 22px -10px rgba(234,106,10,.75),inset 0 1px 0 rgba(255,255,255,.35),0 0 0 1px rgba(255,255,255,.18);transition:filter .2s,box-shadow .2s,transform .15s}
+.workspace .refer-button::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s ease}
+.workspace .refer-button:hover{filter:brightness(1.06);box-shadow:0 14px 28px -10px rgba(234,106,10,.85),inset 0 1px 0 rgba(255,255,255,.4),0 0 0 1px rgba(255,255,255,.22)}
+.workspace .refer-button:hover::before{transform:translateX(120%)}
+.workspace .refer-button:active{transform:scale(.98)}
+.workspace .refer-button.compact{justify-content:center;padding:0}
+.workspace .refer-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace .refer-ext{flex:none;opacity:.75;transition:transform .25s,opacity .25s}
+.workspace .refer-button:hover .refer-ext{opacity:1;transform:translate(2px,-2px)}
+.workspace .refer-gift-wrap{position:relative;display:grid;place-items:center;width:20px;height:20px;flex:none}
+.workspace .refer-gift{transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.workspace .refer-button:hover .refer-gift{transform:rotate(-10deg) scale(1.14)}
+.workspace .refer-sparkles{position:absolute;inset:0;pointer-events:none}
+.workspace .refer-sparkle{position:absolute;left:50%;top:50%;width:var(--ss);height:var(--ss);margin:calc(var(--ss) / -2) 0 0 calc(var(--ss) / -2);background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);opacity:0;transform:translate(var(--sx),var(--sy)) scale(0)}
+.workspace .refer-button:hover .refer-sparkle{animation:refer-twinkle .9s ease-in-out var(--sd) infinite}
+@keyframes refer-twinkle{0%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0) rotate(0)}40%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1) rotate(45deg)}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0) rotate(90deg)}}
+@media (prefers-reduced-motion:reduce){.workspace .refer-button::before,.workspace .refer-gift,.workspace .refer-ext{transition:none}.workspace .refer-button:hover .refer-sparkle{animation:none}}
