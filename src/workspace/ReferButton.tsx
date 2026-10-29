@@ -37,10 +37,10 @@ export function ReferButton({ email, name, expanded = true }: { email?: string |
         <span aria-hidden="true" className="refer-sparkles">
           {SPARKLES.map((s, i) => <span key={i} className="refer-sparkle" style={{ '--sx': `${s.x}px`, '--sy': `${s.y}px`, '--ss': `${s.size}px`, '--sd': `${s.delay}ms` } as React.CSSProperties} />)}
         </span>
-        <Gift size={20} className="refer-gift" />
+        <Gift size={19} className="refer-gift" />
       </span>
       {expanded && <>
-        <span className="refer-label">Refer &amp; earn</span>
+        <span className="refer-text"><span className="refer-label">Refer &amp; earn</span><span className="refer-sub">Invite a friend</span></span>
         <ExternalLink size={14} className="refer-ext" />
       </>}
     </a>
